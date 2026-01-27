@@ -15,7 +15,8 @@ from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+# from datetime import datetime as dt
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -54,11 +55,17 @@ class UploadResponse(BaseModel):
     status: str
     doc_id: str
     filename: str
-    uploaded_at: datetime
+    uploaded_at: str #datetime   
     tags: List[str]
     indexed_to_kb: bool
     page_count: int
     chunks_count: int
+
+    # class Config:
+    #     json_encoders = {
+    #         datetime: lambda v: v.isoformat()
+    #     }
+
 
 
 class HealthResponse(BaseModel):
@@ -81,7 +88,7 @@ class QueryResponse(BaseModel):
 
 
 # Endpoints
-@app.get("/health", response_model=HealthResponse, tags=["Health"])
+@app.get("/health", response_model=HealthResponse, tags=["Server Check"])
 async def health_check():
     """
     Health check endpoint to verify the server is running.
@@ -189,7 +196,7 @@ async def upload_document(
             status="success",
             doc_id=str(document.doc_id),
             filename=document.filename,
-            uploaded_at=document.uploaded_at,
+            uploaded_at=document.uploaded_at.isoformat(),
             tags=document.tags,
             indexed_to_kb=document.indexed_to_kb,
             page_count=document.page_count,
@@ -199,6 +206,8 @@ async def upload_document(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Error processing document: {str(e)}"

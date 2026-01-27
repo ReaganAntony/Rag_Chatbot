@@ -1,1 +1,19 @@
+# Environment variables
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+*.pyc
+# Local Data (Vector DB and Uploads)
+data/
+*.pdf
+
+# IDEs
+.vscode/
+.idea/
