@@ -2,21 +2,18 @@
 Vector Storage Module
 
 This module handles the storage and retrieval of document chunks in ChromaDB.
-It uses Google's Generative AI for generating embeddings.
+It uses local HuggingFace embeddings for offline embedding generation.
 """
 
 import os
 from typing import List, Dict
 
 import chromadb
-import google.generativeai as genai
+from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-
-# Configure Google Generative AI
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Initialize ChromaDB persistent client
 CHROMA_DB_PATH = "./data/chroma_db"
@@ -25,39 +22,13 @@ chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 # Collection name for storing document chunks
 COLLECTION_NAME = "documents"
 
-
-class GeminiEmbeddingFunction:
-    """
-    Custom embedding function using Google's Generative AI.
-    Uses the embedding-001 model for generating text embeddings.
-    """
-
-    def __init__(self, model_name: str = "models/embedding-001"):
-        self.model_name = model_name
-
-    def __call__(self, input_texts: List[str]) -> List[List[float]]:
-        """
-        Generate embeddings for a list of texts.
-
-        Args:
-            input_texts: List of text strings to embed.
-
-        Returns:
-            List of embedding vectors.
-        """
-        embeddings = []
-        for text in input_texts:
-            result = genai.embed_content(
-                model=self.model_name,
-                content=text,
-                task_type="retrieval_document"
-            )
-            embeddings.append(result["embedding"])
-        return embeddings
-
-
-# Initialize the embedding function
-embedding_function = GeminiEmbeddingFunction()
+# Initialize local HuggingFace embeddings
+# Using sentence-transformers/all-MiniLM-L6-v2 for fast, efficient local embeddings
+embedding_function = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={'device': 'cpu'},  # Use 'cuda' if GPU is available
+    encode_kwargs={'normalize_embeddings': True}  # Normalize for better similarity search
+)
 
 
 def get_or_create_collection(collection_name: str = COLLECTION_NAME):
@@ -107,9 +78,9 @@ def save_chunks_to_db(chunks: List, doc_metadata: Dict) -> int:
             "filename": doc_metadata.get("filename", "unknown")
         })
 
-    # Generate embeddings for all chunks
-    print(f"Generating embeddings for {len(documents)} chunks...")
-    embeddings = embedding_function(documents)
+    # Generate embeddings for all chunks using local HuggingFace model
+    print(f"Generating embeddings locally for {len(documents)} chunks...")
+    embeddings = embedding_function.embed_documents(documents)
 
     # Add to collection
     collection.add(
@@ -137,12 +108,8 @@ def query_collection(query_text: str, n_results: int = 5, filter_doc_id: str = N
     """
     collection = get_or_create_collection()
 
-    # Generate embedding for query
-    query_embedding = genai.embed_content(
-        model="models/embedding-001",
-        content=query_text,
-        task_type="retrieval_query"
-    )["embedding"]
+    # Generate embedding for query using local HuggingFace model
+    query_embedding = embedding_function.embed_query(query_text)
 
     # Build where filter if doc_id is provided
     where_filter = None
@@ -177,3 +144,5 @@ def delete_document_chunks(doc_id: str) -> bool:
     except Exception as e:
         print(f"Error deleting chunks: {e}")
         return False
+
+

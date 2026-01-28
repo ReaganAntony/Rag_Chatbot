@@ -7,18 +7,19 @@ based on retrieved context from the document store.
 
 import os
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# Configure Google Generative AI
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Configure Google Generative AI with the new API
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Initialize Gemini model
-MODEL_NAME = "gemini-2.0-flash"
-model = genai.GenerativeModel(MODEL_NAME)
+# Using gemini-2.5-flash - latest model with improved performance
+MODEL_NAME = "gemini-2.5-flash"
 
 # System prompt for RAG-based QA
 SYSTEM_PROMPT = """You are a helpful assistant. Answer the question ONLY using the provided context. If the answer isn't there, say you don't know. Always cite the page numbers used."""
@@ -54,8 +55,11 @@ QUESTION: {question}
 ANSWER:"""
 
     try:
-        # Generate response using Gemini
-        response = model.generate_content(full_prompt)
+        # Generate response using Gemini with new API
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=full_prompt
+        )
 
         # Extract and return the text response
         if response and response.text:
@@ -103,7 +107,11 @@ CURRENT QUESTION: {question}
 ANSWER:"""
 
     try:
-        response = model.generate_content(full_prompt)
+        # Generate response using Gemini with new API
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=full_prompt
+        )
 
         if response and response.text:
             return response.text.strip()

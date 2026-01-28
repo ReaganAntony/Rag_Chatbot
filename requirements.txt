@@ -11,8 +11,12 @@ pypdf
 # Vector Database
 chromadb
 
-# Google Gemini AI
-google-generativeai
+# Google Gemini AI (for QA generation only)
+google-genai
+
+# Local Embeddings
+langchain-huggingface
+sentence-transformers
 
 # Text Processing
 langchain-text-splitters
