@@ -1,0 +1,18 @@
+# API Framework
+fastapi
+uvicorn
+
+# Environment Management
+python-dotenv
+
+# PDF Processing
+pypdf
+
+# Vector Database
+chromadb
+
+# Google Gemini AI
+google-generativeai
+
+# Text Processing
+langchain-text-splitters
