@@ -26,7 +26,7 @@ A Retrieval-Augmented Generation (RAG) chatbot that allows users to upload PDF d
 3. Set up environment variables:
    Create a `.env` file with your Google Gemini API key:
    ```
-   GOOGLE_API_KEY=your_api_key_here
+   GEMINI_API_KEY=your_api_key_here
    ```
 
 ## Usage
